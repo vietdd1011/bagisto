@@ -65,6 +65,7 @@
     <script>
 
         $(document).ready(function () {
+            // Existing click functionality
             $(".menubar-anchor").click(function() {
                 if ( $(this).parent().attr('class') == 'menu-item active' ) {
                     $(this).parent().removeClass('active');
@@ -74,8 +75,109 @@
                     event.preventDefault();
                 }
             });
+
+            // Enhanced hover functionality for menu items with submenus
+            $(".menu-item").hover(
+                function() {
+                    // Mouse enter
+                    var $menuItem = $(this);
+                    var $submenu = $menuItem.find('.sub-menubar');
+                    
+                    if ($submenu.length > 0) {
+                        clearTimeout($menuItem.data('hideTimer'));
+                        $submenu.stop(true, true).slideDown(200);
+                        $menuItem.addClass('hover-active');
+                        $menuItem.find('.arrow-icon').addClass('rotate-arrow-icon');
+                    }
+                },
+                function() {
+                    // Mouse leave
+                    var $menuItem = $(this);
+                    var $submenu = $menuItem.find('.sub-menubar');
+                    
+                    if ($submenu.length > 0) {
+                        var hideTimer = setTimeout(function() {
+                            $submenu.stop(true, true).slideUp(200);
+                            $menuItem.removeClass('hover-active');
+                            $menuItem.find('.arrow-icon').removeClass('rotate-arrow-icon');
+                        }, 200); // Delay to allow moving to submenu
+                        
+                        $menuItem.data('hideTimer', hideTimer);
+                    }
+                }
+            );
+
+            // Keep submenu open when hovering over it
+            $(".sub-menubar").hover(
+                function() {
+                    // Mouse enter submenu
+                    var $menuItem = $(this).closest('.menu-item');
+                    clearTimeout($menuItem.data('hideTimer'));
+                },
+                function() {
+                    // Mouse leave submenu
+                    var $menuItem = $(this).closest('.menu-item');
+                    var $submenu = $(this);
+                    
+                    setTimeout(function() {
+                        if (!$menuItem.is(':hover') && !$submenu.is(':hover')) {
+                            $submenu.stop(true, true).slideUp(200);
+                            $menuItem.removeClass('hover-active');
+                            $menuItem.find('.arrow-icon').removeClass('rotate-arrow-icon');
+                        }
+                    }, 100);
+                }
+            );
         });
 
     </script>
+
+    <style>
+        /* Enhanced hover effects for menu */
+        .navbar-left .menubar .menu-item {
+            transition: background-color 0.2s ease;
+        }
+        
+        .navbar-left .menubar .menu-item.hover-active,
+        .navbar-left .menubar .menu-item:hover {
+            background-color: #f8f9fa !important;
+            overflow: visible !important;
+        }
+        
+        .navbar-left .menubar .menu-item .sub-menubar {
+            transition: all 0.2s ease;
+            border-radius: 0 6px 6px 0;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-left .menubar .menu-item.hover-active .sub-menubar,
+        .navbar-left .menubar .menu-item:hover .sub-menubar {
+            display: block !important;
+        }
+        
+        .navbar-left .menubar .menu-item .sub-menubar .sub-menu-item {
+            transition: background-color 0.15s ease;
+        }
+        
+        .navbar-left .menubar .menu-item .sub-menubar .sub-menu-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .navbar-left .menubar .menu-item .sub-menubar .sub-menu-item:hover a {
+            color: #495057 !important;
+        }
+
+        /* Create a bridge area to prevent menu disappearing */
+        .navbar-left .menubar .menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -5px;
+            width: 5px;
+            height: 100%;
+            background: transparent;
+            z-index: 999;
+        }
+    </style>
 
 @endpush
