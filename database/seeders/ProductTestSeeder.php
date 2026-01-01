@@ -80,7 +80,7 @@ class ProductTestSeeder extends Seeder
             
             // Now sync to product flat
             $this->command->info('Syncing products to product flat table...');
-            $syncService = app(ProductFlatSyncService::class);
+            $syncService = new ProductFlatSyncService(app(\Webkul\Product\Listeners\ProductFlat::class));
             $syncResult = $syncService->syncProductsByIds($createdProductIds);
             
             $this->command->info("Product flat sync completed: {$syncResult['synced']}/{$syncResult['total']} products synced");

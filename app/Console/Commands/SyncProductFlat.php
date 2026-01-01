@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\ProductFlatSyncService;
+use Webkul\Product\Listeners\ProductFlat;
 use Exception;
 
 class SyncProductFlat extends Command
@@ -27,23 +28,6 @@ class SyncProductFlat extends Command
     protected $description = 'Sync products to product flat table';
 
     /**
-     * @var ProductFlatSyncService
-     */
-    protected $syncService;
-
-    /**
-     * Create a new command instance.
-     *
-     * @param ProductFlatSyncService $syncService
-     * @return void
-     */
-    public function __construct(ProductFlatSyncService $syncService)
-    {
-        parent::__construct();
-        $this->syncService = $syncService;
-    }
-
-    /**
      * Execute the console command.
      *
      * @return mixed
@@ -51,16 +35,19 @@ class SyncProductFlat extends Command
     public function handle()
     {
         try {
+            // Create service instance directly
+            $syncService = new ProductFlatSyncService(app(ProductFlat::class));
+
             // Show statistics only
             if ($this->option('stats')) {
-                $this->showStatistics();
+                $this->showStatistics($syncService);
                 return 0;
             }
 
             // Clear and resync all
             if ($this->option('clear')) {
                 $this->info('Clearing existing flat data and resyncing all products...');
-                $result = $this->syncService->clearAndResync($this->option('batch'));
+                $result = $syncService->clearAndResync($this->option('batch'));
                 $this->displayResults($result);
                 return 0;
             }
@@ -68,14 +55,14 @@ class SyncProductFlat extends Command
             // Sync only missing products
             if ($this->option('missing')) {
                 $this->info('Syncing missing products only...');
-                $result = $this->syncService->syncMissingProducts();
+                $result = $syncService->syncMissingProducts();
                 $this->displayResults($result);
                 return 0;
             }
 
             // Default: sync all products
             $this->info('Starting product flat sync...');
-            $result = $this->syncService->syncAllProducts($this->option('batch'));
+            $result = $syncService->syncAllProducts($this->option('batch'));
             $this->displayResults($result);
             
             return 0;
@@ -118,11 +105,12 @@ class SyncProductFlat extends Command
     /**
      * Show sync statistics
      *
+     * @param ProductFlatSyncService $syncService
      * @return void
      */
-    private function showStatistics()
+    private function showStatistics(ProductFlatSyncService $syncService)
     {
-        $stats = $this->syncService->getSyncStatistics();
+        $stats = $syncService->getSyncStatistics();
         
         $this->info('Product Flat Sync Statistics:');
         $this->table(['Metric', 'Value'], [
