@@ -253,5 +253,12 @@ return [
         'route'      => 'admin.cms.index',
         'sort'       => 1,
         'icon-class' => '',
+    ],
+    [
+        'key'        => 'stock-documents',
+        'name'       => 'Nhập hàng',
+        'route'      => 'admin.stock_documents.create',
+        'sort'       => 99,
+        'icon-class' => 'catalog-icon',
     ]
 ];
